@@ -23,7 +23,7 @@ public class PreferenceHelper {
     }
     public static Future<JsonArray> getPreferences(String userId) {
         Promise<JsonArray> promise = Promise.promise();
-        String query = "MATCH (u:User {id:{userId}})-[:PREFERS]->(uac:UserAppConf)"
+        String query = "MATCH (u:User {id:$userId})-[:PREFERS]->(uac:UserAppConf)"
                 + " RETURN uac.rss LIMIT 1";
         JsonObject params = new JsonObject().put(Field.USER_ID, userId);
         neo.execute(query, params, Neo4jResult.validUniqueResultHandler(result -> {
@@ -45,9 +45,9 @@ public class PreferenceHelper {
             .onSuccess(preferences -> {
                 channelsHidden.forEach(channel -> preferences.add(channel.getId()));
                 JsonObject noDisplay = new JsonObject().put(Field.PREFERENCES_NO_DISPLAY_ID, preferences);
-                String query = "MATCH (u:User {id:{userId}}) MERGE (u)-[:PREFERS]->(uac:UserAppConf)"
-                        + " ON CREATE SET uac.rss= {channels}"
-                        + " ON MATCH SET uac.rss= {channels}";
+                String query = "MATCH (u:User {id:$userId}) MERGE (u)-[:PREFERS]->(uac:UserAppConf)"
+                        + " ON CREATE SET uac.rss= $channels"
+                        + " ON MATCH SET uac.rss= $channels";
                 JsonObject params = new JsonObject()
                         .put(Field.USER_ID, userId)
                         .put(Field.CHANNELS, noDisplay.toString());
